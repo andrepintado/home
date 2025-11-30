@@ -143,25 +143,46 @@
             margin-top: 5px;
         }
 
-        .start-btn {
-            width: 100%;
-            padding: 20px;
-            font-size: 1.3em;
-            background: #10b981;
-            color: white;
+        .control-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 10px;
         }
 
-        .start-btn:hover {
+        .control-btn {
+            flex: 1;
+            padding: 20px;
+            font-size: 1.3em;
+            color: white;
+        }
+
+        .start-pause-btn {
+            background: #10b981;
+        }
+
+        .start-pause-btn:hover {
             background: #059669;
         }
 
-        .start-btn.active {
+        .start-pause-btn.paused {
+            background: #f59e0b;
+        }
+
+        .start-pause-btn.paused:hover {
+            background: #d97706;
+        }
+
+        .stop-btn {
             background: #ef4444;
         }
 
-        .start-btn.active:hover {
+        .stop-btn:hover {
             background: #dc2626;
+        }
+
+        .stop-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .beat-indicator {
@@ -235,7 +256,10 @@
             <div class="volume-display"><span id="volumeDisplay">70</span>%</div>
         </div>
 
-        <button class="start-btn" id="startBtn">START</button>
+        <div class="control-buttons">
+            <button class="control-btn start-pause-btn" id="startPauseBtn">START</button>
+            <button class="control-btn stop-btn" id="stopBtn" disabled>STOP</button>
+        </div>
 
         <div class="beat-indicator" id="beatIndicator">
             Ready to start
@@ -252,6 +276,7 @@
                 this.totalBeats = 0;
                 this.currentBeat = 0;
                 this.isPlaying = false;
+                this.isPaused = false;
                 this.isCountIn = false;
                 this.schedulerTimer = null;
                 this.nextNoteTime = 0;
@@ -265,7 +290,8 @@
 
             initElements() {
                 this.tempoDisplay = document.getElementById('tempoDisplay');
-                this.startBtn = document.getElementById('startBtn');
+                this.startPauseBtn = document.getElementById('startPauseBtn');
+                this.stopBtn = document.getElementById('stopBtn');
                 this.beatIndicator = document.getElementById('beatIndicator');
                 this.volumeSlider = document.getElementById('volume');
                 this.volumeDisplay = document.getElementById('volumeDisplay');
@@ -292,7 +318,8 @@
                     }
                 });
 
-                this.startBtn.addEventListener('click', () => this.toggleMetronome());
+                this.startPauseBtn.addEventListener('click', () => this.toggleStartPause());
+                this.stopBtn.addEventListener('click', () => this.stop());
 
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.volume = e.target.value / 100;
@@ -372,12 +399,37 @@
                 if (this.isPlaying) return;
 
                 this.isPlaying = true;
+                this.isPaused = false;
                 this.currentBeat = 0;
                 this.isCountIn = this.startingBeats > 0;
                 this.nextNoteTime = this.audioContext.currentTime;
 
-                this.startBtn.textContent = 'STOP';
-                this.startBtn.classList.add('active');
+                this.startPauseBtn.textContent = 'PAUSE';
+                this.startPauseBtn.classList.remove('paused');
+                this.stopBtn.disabled = false;
+
+                this.schedulerTimer = setInterval(() => this.scheduler(), this.lookahead);
+            }
+
+            pause() {
+                if (!this.isPlaying || this.isPaused) return;
+
+                this.isPaused = true;
+                clearInterval(this.schedulerTimer);
+
+                this.startPauseBtn.textContent = 'RESUME';
+                this.startPauseBtn.classList.add('paused');
+                this.beatIndicator.textContent = 'Paused';
+            }
+
+            resume() {
+                if (!this.isPlaying || !this.isPaused) return;
+
+                this.isPaused = false;
+                this.nextNoteTime = this.audioContext.currentTime;
+
+                this.startPauseBtn.textContent = 'PAUSE';
+                this.startPauseBtn.classList.remove('paused');
 
                 this.schedulerTimer = setInterval(() => this.scheduler(), this.lookahead);
             }
@@ -386,19 +438,23 @@
                 if (!this.isPlaying) return;
 
                 this.isPlaying = false;
+                this.isPaused = false;
                 clearInterval(this.schedulerTimer);
 
-                this.startBtn.textContent = 'START';
-                this.startBtn.classList.remove('active');
+                this.startPauseBtn.textContent = 'START';
+                this.startPauseBtn.classList.remove('paused');
+                this.stopBtn.disabled = true;
                 this.beatIndicator.textContent = 'Ready to start';
                 this.beatIndicator.classList.remove('active');
             }
 
-            toggleMetronome() {
-                if (this.isPlaying) {
-                    this.stop();
-                } else {
+            toggleStartPause() {
+                if (!this.isPlaying) {
                     this.start();
+                } else if (this.isPaused) {
+                    this.resume();
+                } else {
+                    this.pause();
                 }
             }
         }
