@@ -282,6 +282,9 @@
                 this.nextNoteTime = 0;
                 this.scheduleAheadTime = 0.1; // How far ahead to schedule audio (sec)
                 this.lookahead = 25.0; // How frequently to call scheduling function (ms)
+                this.tempoChangeTimer = null;
+                this.tempoChangeInterval = 200; // Initial delay in ms
+                this.tempoHoldTime = 0;
 
                 this.initElements();
                 this.initAudio();
@@ -304,19 +307,14 @@
             }
 
             attachEventListeners() {
-                document.getElementById('increaseTempo').addEventListener('click', () => {
-                    if (this.tempo < 300) {
-                        this.tempo++;
-                        this.updateTempoDisplay();
-                    }
-                });
+                const increaseBtn = document.getElementById('increaseTempo');
+                const decreaseBtn = document.getElementById('decreaseTempo');
 
-                document.getElementById('decreaseTempo').addEventListener('click', () => {
-                    if (this.tempo > 30) {
-                        this.tempo--;
-                        this.updateTempoDisplay();
-                    }
-                });
+                // Increase tempo button with long press
+                this.setupLongPress(increaseBtn, () => this.changeTempo(1));
+
+                // Decrease tempo button with long press
+                this.setupLongPress(decreaseBtn, () => this.changeTempo(-1));
 
                 this.startPauseBtn.addEventListener('click', () => this.toggleStartPause());
                 this.stopBtn.addEventListener('click', () => this.stop());
@@ -333,6 +331,67 @@
                 this.totalBeatsInput.addEventListener('change', (e) => {
                     this.totalBeats = parseInt(e.target.value) || 0;
                 });
+            }
+
+            setupLongPress(button, callback) {
+                let pressTimer = null;
+                let holdStartTime = 0;
+
+                const startPress = (e) => {
+                    e.preventDefault();
+                    holdStartTime = Date.now();
+
+                    // First click - immediate
+                    callback();
+
+                    // Start repeating after initial delay
+                    pressTimer = setTimeout(() => {
+                        this.repeatAction(callback, holdStartTime);
+                    }, 300);
+                };
+
+                const endPress = () => {
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                    }
+                    if (this.tempoChangeTimer) {
+                        clearTimeout(this.tempoChangeTimer);
+                        this.tempoChangeTimer = null;
+                    }
+                };
+
+                // Mouse events
+                button.addEventListener('mousedown', startPress);
+                button.addEventListener('mouseup', endPress);
+                button.addEventListener('mouseleave', endPress);
+
+                // Touch events for mobile
+                button.addEventListener('touchstart', startPress);
+                button.addEventListener('touchend', endPress);
+                button.addEventListener('touchcancel', endPress);
+            }
+
+            repeatAction(callback, startTime) {
+                callback();
+
+                // Calculate how long the button has been held
+                const holdDuration = Date.now() - startTime;
+
+                // Accelerate over time: start at 150ms, minimum 30ms
+                let interval = Math.max(30, 150 - (holdDuration / 20));
+
+                this.tempoChangeTimer = setTimeout(() => {
+                    this.repeatAction(callback, startTime);
+                }, interval);
+            }
+
+            changeTempo(delta) {
+                const newTempo = this.tempo + delta;
+                if (newTempo >= 30 && newTempo <= 300) {
+                    this.tempo = newTempo;
+                    this.updateTempoDisplay();
+                }
             }
 
             updateTempoDisplay() {
