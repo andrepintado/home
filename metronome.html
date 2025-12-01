@@ -478,7 +478,15 @@
 
                 this.startPauseBtn.textContent = 'RESUME';
                 this.startPauseBtn.classList.add('paused');
-                this.beatIndicator.textContent = 'Paused';
+
+                // Show beat position when paused
+                const beatText = this.isCountIn
+                    ? `Paused at count-in: ${this.currentBeat}/${this.startingBeats}`
+                    : this.totalBeats > 0
+                        ? `Paused at beat: ${this.currentBeat}/${this.totalBeats}`
+                        : `Paused at beat: ${this.currentBeat}`;
+
+                this.beatIndicator.textContent = beatText;
             }
 
             resume() {
