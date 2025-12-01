@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Metronome</title>
     <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --text-tertiary: #666666;
+            --input-bg: #f7f7f7;
+            --input-border: #dddddd;
+            --accent-color: #667eea;
+            --accent-hover: #5568d3;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: #0f1419;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --input-bg: #1f2937;
+            --input-border: #374151;
+            --accent-color: #818cf8;
+            --accent-hover: #6366f1;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,28 +41,32 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
-            background: white;
+            background: var(--container-bg);
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px var(--shadow-color);
             max-width: 500px;
             width: 100%;
+            position: relative;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 30px;
             font-size: 2em;
+            transition: color 0.3s ease;
         }
 
         .control-group {
@@ -43,10 +75,33 @@
 
         label {
             display: block;
-            color: #555;
+            color: var(--text-secondary);
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
         }
 
         .tempo-control {
@@ -60,10 +115,29 @@
             text-align: center;
             font-size: 3em;
             font-weight: bold;
-            color: #667eea;
+            color: var(--accent-color);
             padding: 20px;
-            background: #f7f7f7;
+            background: var(--input-bg);
             border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: text;
+        }
+
+        .tempo-display:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: var(--container-bg);
+        }
+
+        .tempo-display::-webkit-inner-spin-button,
+        .tempo-display::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .tempo-display[type=number] {
+            -moz-appearance: textfield;
         }
 
         button {
@@ -77,7 +151,7 @@
         }
 
         .tempo-btn {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
             font-size: 1.5em;
             width: 60px;
@@ -86,7 +160,7 @@
         }
 
         .tempo-btn:hover {
-            background: #5568d3;
+            background: var(--accent-hover);
             transform: scale(1.05);
         }
 
@@ -98,21 +172,23 @@
             width: 100%;
             padding: 12px;
             font-size: 1em;
-            border: 2px solid #ddd;
+            border: 2px solid var(--input-border);
             border-radius: 8px;
-            transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-color);
         }
 
         input[type="range"] {
             width: 100%;
             height: 8px;
             border-radius: 5px;
-            background: #ddd;
+            background: var(--input-border);
             outline: none;
             -webkit-appearance: none;
         }
@@ -123,7 +199,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #667eea;
+            background: var(--accent-color);
             cursor: pointer;
         }
 
@@ -131,16 +207,17 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #667eea;
+            background: var(--accent-color);
             cursor: pointer;
             border: none;
         }
 
         .volume-display {
             text-align: right;
-            color: #667eea;
+            color: var(--accent-color);
             font-weight: 600;
             margin-top: 5px;
+            transition: color 0.3s ease;
         }
 
         .control-buttons {
@@ -189,14 +266,15 @@
             text-align: center;
             margin-top: 20px;
             padding: 15px;
-            background: #f7f7f7;
+            background: var(--input-bg);
             border-radius: 10px;
-            color: #666;
+            color: var(--text-tertiary);
             font-size: 0.9em;
+            transition: all 0.3s ease;
         }
 
         .beat-indicator.active {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
             transform: scale(1.05);
             transition: all 0.1s;
@@ -229,13 +307,16 @@
 </head>
 <body>
     <div class="container">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            🌙
+        </button>
         <h1>🎵 Metronome</h1>
 
         <div class="control-group">
             <label>Tempo (BPM)</label>
             <div class="tempo-control">
                 <button class="tempo-btn" id="decreaseTempo">−</button>
-                <div class="tempo-display" id="tempoDisplay">120</div>
+                <input type="number" class="tempo-display" id="tempoDisplay" value="120" min="30" max="300">
                 <button class="tempo-btn" id="increaseTempo">+</button>
             </div>
         </div>
@@ -288,6 +369,8 @@
 
                 this.initElements();
                 this.initAudio();
+                this.initTheme();
+                this.loadSettings();
                 this.attachEventListeners();
             }
 
@@ -300,10 +383,67 @@
                 this.volumeDisplay = document.getElementById('volumeDisplay');
                 this.startingBeatsInput = document.getElementById('startingBeats');
                 this.totalBeatsInput = document.getElementById('totalBeats');
+                this.themeToggle = document.getElementById('themeToggle');
             }
 
             initAudio() {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            initTheme() {
+                // Check for saved theme preference or default to light mode
+                const savedTheme = localStorage.getItem('metronome-theme') || 'light';
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    this.themeToggle.textContent = '☀️';
+                }
+            }
+
+            loadSettings() {
+                // Load saved settings from localStorage
+                const settings = localStorage.getItem('metronome-settings');
+                if (settings) {
+                    try {
+                        const parsed = JSON.parse(settings);
+
+                        // Apply saved settings
+                        this.tempo = parsed.tempo || 120;
+                        this.volume = parsed.volume !== undefined ? parsed.volume : 0.7;
+                        this.startingBeats = parsed.startingBeats !== undefined ? parsed.startingBeats : 4;
+                        this.totalBeats = parsed.totalBeats || 0;
+
+                        // Update UI elements
+                        this.updateTempoDisplay();
+                        this.volumeSlider.value = Math.round(this.volume * 100);
+                        this.volumeDisplay.textContent = Math.round(this.volume * 100);
+                        this.startingBeatsInput.value = this.startingBeats;
+                        this.totalBeatsInput.value = this.totalBeats;
+                    } catch (e) {
+                        console.error('Failed to load settings:', e);
+                    }
+                }
+            }
+
+            saveSettings() {
+                // Save current settings to localStorage
+                const settings = {
+                    tempo: this.tempo,
+                    volume: this.volume,
+                    startingBeats: this.startingBeats,
+                    totalBeats: this.totalBeats
+                };
+                localStorage.setItem('metronome-settings', JSON.stringify(settings));
+            }
+
+            toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+
+                // Update button icon
+                this.themeToggle.textContent = isDark ? '☀️' : '🌙';
+
+                // Save preference
+                localStorage.setItem('metronome-theme', isDark ? 'dark' : 'light');
             }
 
             attachEventListeners() {
@@ -316,21 +456,49 @@
                 // Decrease tempo button with long press
                 this.setupLongPress(decreaseBtn, () => this.changeTempo(-1));
 
+                // Manual tempo input
+                this.tempoDisplay.addEventListener('input', (e) => {
+                    const value = parseInt(e.target.value);
+                    if (!isNaN(value) && value >= 30 && value <= 300) {
+                        this.tempo = value;
+                        this.saveSettings();
+                    }
+                });
+
+                this.tempoDisplay.addEventListener('blur', (e) => {
+                    // Validate and correct on blur
+                    let value = parseInt(e.target.value);
+                    if (isNaN(value) || value < 30) {
+                        value = 30;
+                    } else if (value > 300) {
+                        value = 300;
+                    }
+                    this.tempo = value;
+                    this.updateTempoDisplay();
+                    this.saveSettings();
+                });
+
                 this.startPauseBtn.addEventListener('click', () => this.toggleStartPause());
                 this.stopBtn.addEventListener('click', () => this.stop());
 
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.volume = e.target.value / 100;
                     this.volumeDisplay.textContent = e.target.value;
+                    this.saveSettings();
                 });
 
                 this.startingBeatsInput.addEventListener('change', (e) => {
                     this.startingBeats = parseInt(e.target.value) || 0;
+                    this.saveSettings();
                 });
 
                 this.totalBeatsInput.addEventListener('change', (e) => {
                     this.totalBeats = parseInt(e.target.value) || 0;
+                    this.saveSettings();
                 });
+
+                // Theme toggle
+                this.themeToggle.addEventListener('click', () => this.toggleTheme());
             }
 
             setupLongPress(button, callback) {
@@ -391,11 +559,12 @@
                 if (newTempo >= 30 && newTempo <= 300) {
                     this.tempo = newTempo;
                     this.updateTempoDisplay();
+                    this.saveSettings();
                 }
             }
 
             updateTempoDisplay() {
-                this.tempoDisplay.textContent = this.tempo;
+                this.tempoDisplay.value = this.tempo;
             }
 
             playClick(time, isCountIn = false) {
@@ -478,7 +647,15 @@
 
                 this.startPauseBtn.textContent = 'RESUME';
                 this.startPauseBtn.classList.add('paused');
-                this.beatIndicator.textContent = 'Paused';
+
+                // Show beat position when paused
+                const beatText = this.isCountIn
+                    ? `Paused at count-in: ${this.currentBeat}/${this.startingBeats}`
+                    : this.totalBeats > 0
+                        ? `Paused at beat: ${this.currentBeat}/${this.totalBeats}`
+                        : `Paused at beat: ${this.currentBeat}`;
+
+                this.beatIndicator.textContent = beatText;
             }
 
             resume() {
