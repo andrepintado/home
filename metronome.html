@@ -104,6 +104,147 @@
             border-color: var(--accent-color);
         }
 
+        .settings-toggle {
+            position: absolute;
+            top: 15px;
+            right: 65px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .settings-toggle:hover {
+            transform: scale(1.1) rotate(90deg);
+            border-color: var(--accent-color);
+        }
+
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background: var(--container-bg);
+            box-shadow: -5px 0 20px var(--shadow-color);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 60px 30px 30px 30px;
+        }
+
+        .settings-modal.open {
+            right: 0;
+        }
+
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .settings-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .settings-modal h2 {
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .settings-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            font-size: 2em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+        }
+
+        .settings-close:hover {
+            color: var(--accent-color);
+        }
+
+        .settings-group {
+            margin-bottom: 30px;
+        }
+
+        .settings-group h3 {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .accent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 10px;
+        }
+
+        .accent-beat {
+            aspect-ratio: 1;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .accent-beat:hover {
+            border-color: var(--accent-color);
+        }
+
+        .accent-beat.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
         .tempo-control {
             display: flex;
             align-items: center;
@@ -306,7 +447,47 @@
     </style>
 </head>
 <body>
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <div class="settings-modal" id="settingsModal">
+        <button class="settings-close" id="settingsClose">×</button>
+        <h2>Advanced Settings</h2>
+
+        <div class="settings-group">
+            <h3>Time Signature</h3>
+            <select id="timeSignature">
+                <option value="4/4">4/4 (Common Time)</option>
+                <option value="3/4">3/4 (Waltz)</option>
+                <option value="2/4">2/4 (March)</option>
+                <option value="6/8">6/8 (Compound)</option>
+                <option value="5/4">5/4</option>
+                <option value="7/8">7/8</option>
+                <option value="12/8">12/8</option>
+            </select>
+        </div>
+
+        <div class="settings-group">
+            <h3>Accent Pattern</h3>
+            <div class="accent-grid" id="accentGrid">
+                <!-- Dynamically generated based on time signature -->
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <h3>Metronome Sound</h3>
+            <select id="soundType">
+                <option value="beep">Beep (Default)</option>
+                <option value="click">Click</option>
+                <option value="woodblock">Woodblock</option>
+                <option value="cowbell">Cowbell</option>
+            </select>
+        </div>
+    </div>
+
     <div class="container">
+        <button class="settings-toggle" id="settingsToggle" aria-label="Advanced settings">
+            ⚙️
+        </button>
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
             🌙
         </button>
@@ -367,11 +548,17 @@
                 this.tempoChangeInterval = 200; // Initial delay in ms
                 this.tempoHoldTime = 0;
 
+                // Advanced settings
+                this.timeSignature = '4/4';
+                this.accentPattern = [true, false, false, false]; // First beat accented by default
+                this.soundType = 'beep';
+
                 this.initElements();
                 this.initAudio();
                 this.initTheme();
                 this.loadSettings();
                 this.attachEventListeners();
+                this.updateAccentGrid();
             }
 
             initElements() {
@@ -384,6 +571,13 @@
                 this.startingBeatsInput = document.getElementById('startingBeats');
                 this.totalBeatsInput = document.getElementById('totalBeats');
                 this.themeToggle = document.getElementById('themeToggle');
+                this.settingsToggle = document.getElementById('settingsToggle');
+                this.settingsModal = document.getElementById('settingsModal');
+                this.settingsOverlay = document.getElementById('settingsOverlay');
+                this.settingsClose = document.getElementById('settingsClose');
+                this.timeSignatureSelect = document.getElementById('timeSignature');
+                this.soundTypeSelect = document.getElementById('soundType');
+                this.accentGrid = document.getElementById('accentGrid');
             }
 
             initAudio() {
@@ -412,12 +606,19 @@
                         this.startingBeats = parsed.startingBeats !== undefined ? parsed.startingBeats : 4;
                         this.totalBeats = parsed.totalBeats || 0;
 
+                        // Apply advanced settings
+                        this.timeSignature = parsed.timeSignature || '4/4';
+                        this.accentPattern = parsed.accentPattern || [true, false, false, false];
+                        this.soundType = parsed.soundType || 'beep';
+
                         // Update UI elements
                         this.updateTempoDisplay();
                         this.volumeSlider.value = Math.round(this.volume * 100);
                         this.volumeDisplay.textContent = Math.round(this.volume * 100);
                         this.startingBeatsInput.value = this.startingBeats;
                         this.totalBeatsInput.value = this.totalBeats;
+                        this.timeSignatureSelect.value = this.timeSignature;
+                        this.soundTypeSelect.value = this.soundType;
                     } catch (e) {
                         console.error('Failed to load settings:', e);
                     }
@@ -430,7 +631,10 @@
                     tempo: this.tempo,
                     volume: this.volume,
                     startingBeats: this.startingBeats,
-                    totalBeats: this.totalBeats
+                    totalBeats: this.totalBeats,
+                    timeSignature: this.timeSignature,
+                    accentPattern: this.accentPattern,
+                    soundType: this.soundType
                 };
                 localStorage.setItem('metronome-settings', JSON.stringify(settings));
             }
@@ -444,6 +648,47 @@
 
                 // Save preference
                 localStorage.setItem('metronome-theme', isDark ? 'dark' : 'light');
+            }
+
+            openSettings() {
+                this.settingsModal.classList.add('open');
+                this.settingsOverlay.classList.add('open');
+            }
+
+            closeSettings() {
+                this.settingsModal.classList.remove('open');
+                this.settingsOverlay.classList.remove('open');
+            }
+
+            updateAccentGrid() {
+                const beats = parseInt(this.timeSignature.split('/')[0]);
+                this.accentGrid.innerHTML = '';
+
+                // Resize accent pattern if needed
+                if (this.accentPattern.length !== beats) {
+                    this.accentPattern = Array(beats).fill(false);
+                    this.accentPattern[0] = true; // Accent first beat by default
+                }
+
+                // Create beat buttons
+                for (let i = 0; i < beats; i++) {
+                    const beatBtn = document.createElement('div');
+                    beatBtn.className = 'accent-beat';
+                    if (this.accentPattern[i]) {
+                        beatBtn.classList.add('active');
+                    }
+                    beatBtn.textContent = i + 1;
+                    beatBtn.addEventListener('click', () => {
+                        this.accentPattern[i] = !this.accentPattern[i];
+                        beatBtn.classList.toggle('active');
+                        this.saveSettings();
+                    });
+                    this.accentGrid.appendChild(beatBtn);
+                }
+            }
+
+            getBeatsPerMeasure() {
+                return parseInt(this.timeSignature.split('/')[0]);
             }
 
             attachEventListeners() {
@@ -499,6 +744,23 @@
 
                 // Theme toggle
                 this.themeToggle.addEventListener('click', () => this.toggleTheme());
+
+                // Settings modal
+                this.settingsToggle.addEventListener('click', () => this.openSettings());
+                this.settingsClose.addEventListener('click', () => this.closeSettings());
+                this.settingsOverlay.addEventListener('click', () => this.closeSettings());
+
+                // Advanced settings
+                this.timeSignatureSelect.addEventListener('change', (e) => {
+                    this.timeSignature = e.target.value;
+                    this.updateAccentGrid();
+                    this.saveSettings();
+                });
+
+                this.soundTypeSelect.addEventListener('change', (e) => {
+                    this.soundType = e.target.value;
+                    this.saveSettings();
+                });
             }
 
             setupLongPress(button, callback) {
@@ -567,19 +829,50 @@
                 this.tempoDisplay.value = this.tempo;
             }
 
-            playClick(time, isCountIn = false) {
+            playClick(time, isCountIn = false, beatNumber = 0) {
                 const osc = this.audioContext.createOscillator();
                 const gainNode = this.audioContext.createGain();
 
                 osc.connect(gainNode);
                 gainNode.connect(this.audioContext.destination);
 
-                // Different pitch for count-in vs regular beats
-                osc.frequency.value = isCountIn ? 800 : 1000;
-                gainNode.gain.value = this.volume;
+                // Determine if this beat should be accented
+                const beatsPerMeasure = this.getBeatsPerMeasure();
+                const beatInMeasure = beatNumber % beatsPerMeasure;
+                const isAccented = !isCountIn && this.accentPattern[beatInMeasure];
+
+                // Set frequency based on sound type and accent
+                let frequency, duration;
+
+                switch (this.soundType) {
+                    case 'click':
+                        frequency = isCountIn ? 1200 : (isAccented ? 1500 : 1000);
+                        duration = 0.03;
+                        break;
+                    case 'woodblock':
+                        frequency = isCountIn ? 800 : (isAccented ? 1000 : 600);
+                        duration = 0.04;
+                        osc.type = 'triangle';
+                        break;
+                    case 'cowbell':
+                        frequency = isCountIn ? 700 : (isAccented ? 900 : 550);
+                        duration = 0.08;
+                        osc.type = 'square';
+                        break;
+                    default: // beep
+                        frequency = isCountIn ? 800 : (isAccented ? 1200 : 1000);
+                        duration = 0.05;
+                        break;
+                }
+
+                osc.frequency.value = frequency;
+
+                // Accented beats are slightly louder
+                const volumeMultiplier = isAccented ? 1.3 : 1.0;
+                gainNode.gain.value = this.volume * volumeMultiplier;
 
                 osc.start(time);
-                osc.stop(time + 0.05);
+                osc.stop(time + duration);
             }
 
             nextNote() {
@@ -588,7 +881,7 @@
             }
 
             scheduleNote(beatNumber, time) {
-                this.playClick(time, this.isCountIn);
+                this.playClick(time, this.isCountIn, beatNumber);
 
                 // Update UI on main thread
                 const beatText = this.isCountIn
