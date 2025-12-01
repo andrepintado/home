@@ -370,6 +370,7 @@
                 this.initElements();
                 this.initAudio();
                 this.initTheme();
+                this.loadSettings();
                 this.attachEventListeners();
             }
 
@@ -398,6 +399,42 @@
                 }
             }
 
+            loadSettings() {
+                // Load saved settings from localStorage
+                const settings = localStorage.getItem('metronome-settings');
+                if (settings) {
+                    try {
+                        const parsed = JSON.parse(settings);
+
+                        // Apply saved settings
+                        this.tempo = parsed.tempo || 120;
+                        this.volume = parsed.volume !== undefined ? parsed.volume : 0.7;
+                        this.startingBeats = parsed.startingBeats !== undefined ? parsed.startingBeats : 4;
+                        this.totalBeats = parsed.totalBeats || 0;
+
+                        // Update UI elements
+                        this.updateTempoDisplay();
+                        this.volumeSlider.value = Math.round(this.volume * 100);
+                        this.volumeDisplay.textContent = Math.round(this.volume * 100);
+                        this.startingBeatsInput.value = this.startingBeats;
+                        this.totalBeatsInput.value = this.totalBeats;
+                    } catch (e) {
+                        console.error('Failed to load settings:', e);
+                    }
+                }
+            }
+
+            saveSettings() {
+                // Save current settings to localStorage
+                const settings = {
+                    tempo: this.tempo,
+                    volume: this.volume,
+                    startingBeats: this.startingBeats,
+                    totalBeats: this.totalBeats
+                };
+                localStorage.setItem('metronome-settings', JSON.stringify(settings));
+            }
+
             toggleTheme() {
                 document.body.classList.toggle('dark-mode');
                 const isDark = document.body.classList.contains('dark-mode');
@@ -424,6 +461,7 @@
                     const value = parseInt(e.target.value);
                     if (!isNaN(value) && value >= 30 && value <= 300) {
                         this.tempo = value;
+                        this.saveSettings();
                     }
                 });
 
@@ -437,6 +475,7 @@
                     }
                     this.tempo = value;
                     this.updateTempoDisplay();
+                    this.saveSettings();
                 });
 
                 this.startPauseBtn.addEventListener('click', () => this.toggleStartPause());
@@ -445,14 +484,17 @@
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.volume = e.target.value / 100;
                     this.volumeDisplay.textContent = e.target.value;
+                    this.saveSettings();
                 });
 
                 this.startingBeatsInput.addEventListener('change', (e) => {
                     this.startingBeats = parseInt(e.target.value) || 0;
+                    this.saveSettings();
                 });
 
                 this.totalBeatsInput.addEventListener('change', (e) => {
                     this.totalBeats = parseInt(e.target.value) || 0;
+                    this.saveSettings();
                 });
 
                 // Theme toggle
@@ -517,6 +559,7 @@
                 if (newTempo >= 30 && newTempo <= 300) {
                     this.tempo = newTempo;
                     this.updateTempoDisplay();
+                    this.saveSettings();
                 }
             }
 
