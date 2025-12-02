@@ -604,6 +604,8 @@
         class Metronome {
             constructor() {
                 this.audioContext = null;
+                this.audioBuffers = {}; // Store loaded audio samples
+                this.audioLoaded = false;
                 this.tempo = 120;
                 this.volume = 0.7;
                 this.startingBeats = 4;
@@ -655,8 +657,63 @@
                 this.beatPreview = document.getElementById('beatPreview');
             }
 
-            initAudio() {
+            async initAudio() {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Audio samples as base64-encoded WAV files
+                const audioSamples = {
+                    // Short beep sound - clean and simple
+                    beep: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA=',
+                    // Click sound - short and sharp
+                    click: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA=',
+                    // Woodblock sound - deeper tone
+                    woodblock: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA='
+                };
+
+                // Generate actual audio buffers using oscillators (better quality than empty WAV)
+                await this.generateSoundBuffers();
+            }
+
+            async generateSoundBuffers() {
+                const sampleRate = this.audioContext.sampleRate;
+
+                // Create beep sound - clean sine wave
+                const beepLength = Math.floor(sampleRate * 0.05); // 50ms
+                const beepBuffer = this.audioContext.createBuffer(1, beepLength, sampleRate);
+                const beepData = beepBuffer.getChannelData(0);
+                for (let i = 0; i < beepLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 15); // Decay envelope
+                    beepData[i] = Math.sin(2 * Math.PI * 1000 * t) * envelope * 0.3;
+                }
+                this.audioBuffers.beep = beepBuffer;
+
+                // Create click sound - short sharp attack
+                const clickLength = Math.floor(sampleRate * 0.03); // 30ms
+                const clickBuffer = this.audioContext.createBuffer(1, clickLength, sampleRate);
+                const clickData = clickBuffer.getChannelData(0);
+                for (let i = 0; i < clickLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 40); // Fast decay
+                    clickData[i] = Math.sin(2 * Math.PI * 1200 * t) * envelope * 0.4;
+                }
+                this.audioBuffers.click = clickBuffer;
+
+                // Create woodblock sound - triangle wave with overtones
+                const woodLength = Math.floor(sampleRate * 0.04); // 40ms
+                const woodBuffer = this.audioContext.createBuffer(1, woodLength, sampleRate);
+                const woodData = woodBuffer.getChannelData(0);
+                for (let i = 0; i < woodLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 25);
+                    // Triangle wave approximation with harmonics
+                    const fundamental = Math.sin(2 * Math.PI * 700 * t);
+                    const harmonic = Math.sin(2 * Math.PI * 1400 * t) * 0.3;
+                    woodData[i] = (fundamental + harmonic) * envelope * 0.35;
+                }
+                this.audioBuffers.woodblock = woodBuffer;
+
+                this.audioLoaded = true;
             }
 
             initTheme() {
@@ -981,44 +1038,39 @@
             }
 
             playClick(time, isCountIn = false, beatNumber = 0) {
-                const osc = this.audioContext.createOscillator();
-                const gainNode = this.audioContext.createGain();
+                if (!this.audioLoaded) return; // Wait for audio buffers to load
 
-                osc.connect(gainNode);
-                gainNode.connect(this.audioContext.destination);
+                // Create buffer source and gain node
+                const source = this.audioContext.createBufferSource();
+                const gainNode = this.audioContext.createGain();
 
                 // Determine if this beat should be accented
                 const beatsPerMeasure = this.getBeatsPerMeasure();
                 const beatInMeasure = beatNumber % beatsPerMeasure;
                 const isAccented = !isCountIn && this.accentPattern[beatInMeasure];
 
-                // Set frequency based on sound type and accent
-                let frequency, duration;
+                // Select the appropriate audio buffer
+                source.buffer = this.audioBuffers[this.soundType] || this.audioBuffers.beep;
 
-                switch (this.soundType) {
-                    case 'click':
-                        frequency = isCountIn ? 1200 : (isAccented ? 1500 : 1000);
-                        duration = 0.03;
-                        break;
-                    case 'woodblock':
-                        frequency = isCountIn ? 800 : (isAccented ? 1000 : 600);
-                        duration = 0.04;
-                        osc.type = 'triangle';
-                        break;
-                    default: // beep
-                        frequency = isCountIn ? 800 : (isAccented ? 1200 : 1000);
-                        duration = 0.05;
-                        break;
+                // Apply pitch shift for count-in and accented beats
+                if (isCountIn) {
+                    source.playbackRate.value = 0.9; // Slightly lower pitch for count-in
+                } else if (isAccented) {
+                    source.playbackRate.value = 1.2; // Higher pitch for accented beats
+                } else {
+                    source.playbackRate.value = 1.0; // Normal pitch
                 }
 
-                osc.frequency.value = frequency;
+                // Connect audio graph
+                source.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
 
                 // Accented beats are slightly louder
-                const volumeMultiplier = isAccented ? 1.3 : 1.0;
+                const volumeMultiplier = isAccented ? 1.4 : 1.0;
                 gainNode.gain.value = this.volume * volumeMultiplier;
 
-                osc.start(time);
-                osc.stop(time + duration);
+                // Play the sound
+                source.start(time);
             }
 
             nextNote() {
