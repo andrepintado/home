@@ -557,7 +557,6 @@
                 <option value="beep">Beep (Default)</option>
                 <option value="click">Click</option>
                 <option value="woodblock">Woodblock</option>
-                <option value="cowbell">Cowbell</option>
             </select>
         </div>
     </div>
@@ -1005,11 +1004,6 @@
                         frequency = isCountIn ? 800 : (isAccented ? 1000 : 600);
                         duration = 0.04;
                         osc.type = 'triangle';
-                        break;
-                    case 'cowbell':
-                        frequency = isCountIn ? 700 : (isAccented ? 900 : 550);
-                        duration = 0.08;
-                        osc.type = 'square';
                         break;
                     default: // beep
                         frequency = isCountIn ? 800 : (isAccented ? 1200 : 1000);
