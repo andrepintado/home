@@ -337,7 +337,7 @@
             border: 2px solid var(--input-border);
             border-radius: 6px;
             padding: 8px 12px;
-            font-size: 1.1em;
+            font-size: 1.3em;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -345,6 +345,65 @@
         .preset-item .duplicate-btn:hover {
             background: var(--input-bg);
             border-color: var(--accent-color);
+        }
+
+        .preset-item .duplicate-btn:nth-of-type(2) {
+            color: #10b981;
+        }
+
+        .preset-item .duplicate-btn:nth-of-type(2):hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Custom Tooltips */
+        [title] {
+            position: relative;
+        }
+
+        button[title]:hover::after,
+        input[title]:hover::after,
+        .preset-name[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            white-space: nowrap;
+            z-index: 10000;
+            pointer-events: none;
+            animation: tooltipFadeIn 0.2s ease;
+        }
+
+        button[title]:hover::before,
+        input[title]:hover::before,
+        .preset-name[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            pointer-events: none;
+            animation: tooltipFadeIn 0.2s ease;
+        }
+
+        @keyframes tooltipFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         /* Name Input Modal */
