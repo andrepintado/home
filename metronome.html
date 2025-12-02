@@ -245,6 +245,23 @@
             color: white;
         }
 
+        .time-signature-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-signature-input input {
+            flex: 1;
+            text-align: center;
+        }
+
+        .time-signature-input span {
+            color: var(--text-secondary);
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
         .tempo-control {
             display: flex;
             align-items: center;
@@ -455,15 +472,11 @@
 
         <div class="settings-group">
             <h3>Time Signature</h3>
-            <select id="timeSignature">
-                <option value="4/4">4/4 (Common Time)</option>
-                <option value="3/4">3/4 (Waltz)</option>
-                <option value="2/4">2/4 (March)</option>
-                <option value="6/8">6/8 (Compound)</option>
-                <option value="5/4">5/4</option>
-                <option value="7/8">7/8</option>
-                <option value="12/8">12/8</option>
-            </select>
+            <div class="time-signature-input">
+                <input type="number" id="timeSigNumerator" min="1" max="32" value="4">
+                <span>/</span>
+                <input type="number" id="timeSigDenominator" min="1" max="16" value="4">
+            </div>
         </div>
 
         <div class="settings-group">
@@ -471,6 +484,11 @@
             <div class="accent-grid" id="accentGrid">
                 <!-- Dynamically generated based on time signature -->
             </div>
+        </div>
+
+        <div class="settings-group">
+            <h3>Starting Beats (count-in)</h3>
+            <input type="number" id="startingBeats" min="0" max="16" value="4">
         </div>
 
         <div class="settings-group">
@@ -500,11 +518,6 @@
                 <input type="number" class="tempo-display" id="tempoDisplay" value="120" min="30" max="300">
                 <button class="tempo-btn" id="increaseTempo">+</button>
             </div>
-        </div>
-
-        <div class="control-group">
-            <label for="startingBeats">Starting Beats (count-in)</label>
-            <input type="number" id="startingBeats" min="0" max="8" value="4">
         </div>
 
         <div class="control-group">
@@ -549,7 +562,8 @@
                 this.tempoHoldTime = 0;
 
                 // Advanced settings
-                this.timeSignature = '4/4';
+                this.timeSigNumerator = 4;
+                this.timeSigDenominator = 4;
                 this.accentPattern = [true, false, false, false]; // First beat accented by default
                 this.soundType = 'beep';
 
@@ -575,7 +589,8 @@
                 this.settingsModal = document.getElementById('settingsModal');
                 this.settingsOverlay = document.getElementById('settingsOverlay');
                 this.settingsClose = document.getElementById('settingsClose');
-                this.timeSignatureSelect = document.getElementById('timeSignature');
+                this.timeSigNumeratorInput = document.getElementById('timeSigNumerator');
+                this.timeSigDenominatorInput = document.getElementById('timeSigDenominator');
                 this.soundTypeSelect = document.getElementById('soundType');
                 this.accentGrid = document.getElementById('accentGrid');
             }
@@ -607,7 +622,8 @@
                         this.totalBeats = parsed.totalBeats || 0;
 
                         // Apply advanced settings
-                        this.timeSignature = parsed.timeSignature || '4/4';
+                        this.timeSigNumerator = parsed.timeSigNumerator || 4;
+                        this.timeSigDenominator = parsed.timeSigDenominator || 4;
                         this.accentPattern = parsed.accentPattern || [true, false, false, false];
                         this.soundType = parsed.soundType || 'beep';
 
@@ -617,7 +633,8 @@
                         this.volumeDisplay.textContent = Math.round(this.volume * 100);
                         this.startingBeatsInput.value = this.startingBeats;
                         this.totalBeatsInput.value = this.totalBeats;
-                        this.timeSignatureSelect.value = this.timeSignature;
+                        this.timeSigNumeratorInput.value = this.timeSigNumerator;
+                        this.timeSigDenominatorInput.value = this.timeSigDenominator;
                         this.soundTypeSelect.value = this.soundType;
                     } catch (e) {
                         console.error('Failed to load settings:', e);
@@ -632,7 +649,8 @@
                     volume: this.volume,
                     startingBeats: this.startingBeats,
                     totalBeats: this.totalBeats,
-                    timeSignature: this.timeSignature,
+                    timeSigNumerator: this.timeSigNumerator,
+                    timeSigDenominator: this.timeSigDenominator,
                     accentPattern: this.accentPattern,
                     soundType: this.soundType
                 };
@@ -661,7 +679,7 @@
             }
 
             updateAccentGrid() {
-                const beats = parseInt(this.timeSignature.split('/')[0]);
+                const beats = this.timeSigNumerator;
                 this.accentGrid.innerHTML = '';
 
                 // Resize accent pattern if needed
@@ -688,7 +706,7 @@
             }
 
             getBeatsPerMeasure() {
-                return parseInt(this.timeSignature.split('/')[0]);
+                return this.timeSigNumerator;
             }
 
             attachEventListeners() {
@@ -750,11 +768,26 @@
                 this.settingsClose.addEventListener('click', () => this.closeSettings());
                 this.settingsOverlay.addEventListener('click', () => this.closeSettings());
 
-                // Advanced settings
-                this.timeSignatureSelect.addEventListener('change', (e) => {
-                    this.timeSignature = e.target.value;
-                    this.updateAccentGrid();
-                    this.saveSettings();
+                // Advanced settings - time signature
+                this.timeSigNumeratorInput.addEventListener('change', (e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 1 && value <= 32) {
+                        this.timeSigNumerator = value;
+                        this.updateAccentGrid();
+                        this.saveSettings();
+                    } else {
+                        e.target.value = this.timeSigNumerator;
+                    }
+                });
+
+                this.timeSigDenominatorInput.addEventListener('change', (e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 1 && value <= 16) {
+                        this.timeSigDenominator = value;
+                        this.saveSettings();
+                    } else {
+                        e.target.value = this.timeSigDenominator;
+                    }
                 });
 
                 this.soundTypeSelect.addEventListener('change', (e) => {
