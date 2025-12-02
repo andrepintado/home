@@ -64,6 +64,7 @@
         h1 {
             text-align: center;
             color: var(--text-primary);
+            margin-top: 45px;
             margin-bottom: 10px;
             font-size: 2em;
             transition: color 0.3s ease;
@@ -239,20 +240,20 @@
         .presets-modal {
             position: fixed;
             top: 0;
-            right: -100%;
+            left: -100%;
             width: 100%;
             max-width: 400px;
             height: 100vh;
             background: var(--container-bg);
-            box-shadow: -5px 0 20px var(--shadow-color);
-            transition: right 0.3s ease;
-            z-index: 1000;
+            box-shadow: 5px 0 20px var(--shadow-color);
+            transition: left 0.3s ease;
+            z-index: 1001;
             overflow-y: auto;
             padding: 60px 30px 30px 30px;
         }
 
         .presets-modal.open {
-            right: 0;
+            left: 0;
         }
 
         .presets-modal h2 {
@@ -283,7 +284,7 @@
 
         .preset-item:hover {
             border-color: var(--accent-color);
-            transform: translateX(-5px);
+            transform: translateX(5px);
         }
 
         .preset-item.dragging {
@@ -315,18 +316,116 @@
         }
 
         .preset-item .delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
+            background: transparent;
+            color: #ef4444;
+            border: 2px solid var(--input-border);
             border-radius: 6px;
             padding: 8px 12px;
-            font-size: 0.9em;
+            font-size: 1.1em;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .preset-item .delete-btn:hover {
-            background: #dc2626;
+            background: #fee;
+            border-color: #ef4444;
+        }
+
+        .preset-item .duplicate-btn {
+            background: transparent;
+            color: var(--accent-color);
+            border: 2px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-item .duplicate-btn:hover {
+            background: var(--input-bg);
+            border-color: var(--accent-color);
+        }
+
+        /* Name Input Modal */
+        .name-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .name-modal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .name-modal h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .name-modal input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .name-modal input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .name-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .name-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .name-modal-cancel {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--input-border);
+        }
+
+        .name-modal-cancel:hover {
+            border-color: var(--accent-color);
+        }
+
+        .name-modal-confirm {
+            background: var(--accent-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+        }
+
+        .name-modal-confirm:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
         }
 
         .settings-modal h2 {
@@ -661,6 +760,7 @@
 
             h1 {
                 font-size: 1.5em;
+                margin-top: 50px;
             }
 
             .tempo-display {
@@ -681,6 +781,16 @@
 </head>
 <body>
     <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- Name Input Modal -->
+    <div class="name-modal" id="nameModal">
+        <h3 id="nameModalTitle">Enter preset name</h3>
+        <input type="text" id="nameModalInput" placeholder="e.g., Song Practice, Waltz, etc." />
+        <div class="name-modal-buttons">
+            <button class="name-modal-cancel" id="nameModalCancel">Cancel</button>
+            <button class="name-modal-confirm" id="nameModalConfirm">Save</button>
+        </div>
+    </div>
 
     <div class="presets-modal" id="presetsModal">
         <button class="settings-close" id="presetsClose">×</button>
@@ -808,6 +918,7 @@
                 this.currentPresetId = null;
                 this.currentPresetName = null;
                 this.isModified = false;
+                this.nameModalCallback = null;
 
                 this.initElements();
                 this.initAudio();
@@ -845,6 +956,13 @@
                 this.presetsModal = document.getElementById('presetsModal');
                 this.presetsClose = document.getElementById('presetsClose');
                 this.presetsList = document.getElementById('presetsList');
+
+                // Name modal elements
+                this.nameModal = document.getElementById('nameModal');
+                this.nameModalTitle = document.getElementById('nameModalTitle');
+                this.nameModalInput = document.getElementById('nameModalInput');
+                this.nameModalCancel = document.getElementById('nameModalCancel');
+                this.nameModalConfirm = document.getElementById('nameModalConfirm');
             }
 
             async initAudio() {
@@ -1018,19 +1136,20 @@
             }
 
             async savePreset() {
-                let presetName = this.currentPresetName;
-
-                // If no current preset name, prompt for one
-                if (!presetName) {
-                    presetName = prompt('Enter a name for this preset:');
-                    if (!presetName || presetName.trim() === '') {
-                        return; // User cancelled or entered empty name
-                    }
-                    presetName = presetName.trim();
-                }
-
                 const settings = this.getCurrentSettings();
 
+                // If no current preset name, show modal to get one
+                if (!this.currentPresetName) {
+                    this.showNameModal('Enter preset name', '', (presetName) => {
+                        this.performSavePreset(presetName, settings);
+                    });
+                } else {
+                    // Update existing preset
+                    this.performSavePreset(this.currentPresetName, settings);
+                }
+            }
+
+            performSavePreset(presetName, settings) {
                 // Check if updating existing preset
                 if (this.currentPresetId) {
                     const presetIndex = this.presets.findIndex(p => p.id === this.currentPresetId);
@@ -1057,6 +1176,40 @@
                 this.savePresetsToStorage();
                 this.updatePresetsList();
                 this.updatePresetNameDisplay();
+            }
+
+            duplicatePreset(presetId) {
+                const preset = this.presets.find(p => p.id === presetId);
+                if (!preset) return;
+
+                this.showNameModal('Duplicate preset as...', `${preset.name} (copy)`, (newName) => {
+                    const newPreset = {
+                        ...preset,
+                        id: Date.now().toString(),
+                        name: newName
+                    };
+                    this.presets.push(newPreset);
+                    this.savePresetsToStorage();
+                    this.updatePresetsList();
+                });
+            }
+
+            renamePreset(presetId) {
+                const preset = this.presets.find(p => p.id === presetId);
+                if (!preset) return;
+
+                this.showNameModal('Rename preset', preset.name, (newName) => {
+                    preset.name = newName;
+
+                    // If this is the current preset, update the display
+                    if (this.currentPresetId === presetId) {
+                        this.currentPresetName = newName;
+                        this.updatePresetNameDisplay();
+                    }
+
+                    this.savePresetsToStorage();
+                    this.updatePresetsList();
+                });
             }
 
             loadPreset(presetId) {
@@ -1148,10 +1301,31 @@
                     `;
                     info.addEventListener('click', () => this.loadPreset(preset.id));
 
+                    // Edit button
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'duplicate-btn';
+                    editBtn.textContent = '✏️';
+                    editBtn.title = 'Rename preset';
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.renamePreset(preset.id);
+                    });
+
+                    // Duplicate button
+                    const duplicateBtn = document.createElement('button');
+                    duplicateBtn.className = 'duplicate-btn';
+                    duplicateBtn.textContent = '📄';
+                    duplicateBtn.title = 'Duplicate preset';
+                    duplicateBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.duplicatePreset(preset.id);
+                    });
+
                     // Delete button
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete-btn';
                     deleteBtn.textContent = '🗑️';
+                    deleteBtn.title = 'Delete preset';
                     deleteBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         this.deletePreset(preset.id);
@@ -1159,6 +1333,8 @@
 
                     item.appendChild(dragHandle);
                     item.appendChild(info);
+                    item.appendChild(editBtn);
+                    item.appendChild(duplicateBtn);
                     item.appendChild(deleteBtn);
 
                     this.presetsList.appendChild(item);
@@ -1200,6 +1376,35 @@
                 if (!this.settingsModal.classList.contains('open')) {
                     this.settingsOverlay.classList.remove('open');
                 }
+            }
+
+            showNameModal(title, initialValue = '', callback) {
+                this.nameModalTitle.textContent = title;
+                this.nameModalInput.value = initialValue;
+                this.nameModalCallback = callback;
+                this.nameModal.classList.add('open');
+                this.settingsOverlay.classList.add('open');
+
+                // Focus the input
+                setTimeout(() => this.nameModalInput.focus(), 100);
+            }
+
+            hideNameModal() {
+                this.nameModal.classList.remove('open');
+                // Only close overlay if modals are closed
+                if (!this.settingsModal.classList.contains('open') &&
+                    !this.presetsModal.classList.contains('open')) {
+                    this.settingsOverlay.classList.remove('open');
+                }
+                this.nameModalCallback = null;
+            }
+
+            confirmNameModal() {
+                const name = this.nameModalInput.value.trim();
+                if (name && this.nameModalCallback) {
+                    this.nameModalCallback(name);
+                }
+                this.hideNameModal();
             }
 
             attachDragListeners() {
@@ -1415,6 +1620,27 @@
                 this.savePresetBtn.addEventListener('click', () => this.savePreset());
                 this.presetsListBtn.addEventListener('click', () => this.openPresetsModal());
                 this.presetsClose.addEventListener('click', () => this.closePresetsModal());
+
+                // Click on preset name to rename
+                this.presetNameDisplay.addEventListener('click', () => {
+                    if (this.currentPresetId) {
+                        this.renamePreset(this.currentPresetId);
+                    }
+                });
+                this.presetNameDisplay.style.cursor = 'pointer';
+
+                // Name modal
+                this.nameModalCancel.addEventListener('click', () => this.hideNameModal());
+                this.nameModalConfirm.addEventListener('click', () => this.confirmNameModal());
+                this.nameModalInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.confirmNameModal();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.hideNameModal();
+                    }
+                });
 
                 // Advanced settings - time signature
                 this.timeSigNumeratorInput.addEventListener('change', (e) => {
