@@ -217,8 +217,9 @@
 
         .accent-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
             gap: 10px;
+            max-width: 100%;
         }
 
         .accent-beat {
@@ -233,6 +234,7 @@
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s ease;
+            max-width: 80px;
         }
 
         .accent-beat:hover {
@@ -515,15 +517,15 @@
                 <span>/</span>
                 <input type="number" id="timeSigDenominator" min="1" max="16" value="4">
             </div>
-            <div class="beat-preview" id="beatPreview">
-                <!-- Dynamically generated beat notation -->
-            </div>
         </div>
 
         <div class="settings-group">
             <h3>Accent Pattern</h3>
             <div class="accent-grid" id="accentGrid">
                 <!-- Dynamically generated based on time signature -->
+            </div>
+            <div class="beat-preview" id="beatPreview">
+                <!-- Dynamically generated beat notation -->
             </div>
         </div>
 
