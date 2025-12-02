@@ -262,6 +262,44 @@
             font-weight: bold;
         }
 
+        .beat-preview {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px;
+            padding: 20px;
+            background: var(--input-bg);
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 80px;
+        }
+
+        .beat-note {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .beat-note .note-symbol {
+            font-size: 2.5em;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .beat-note .accent-mark {
+            font-size: 1.2em;
+            color: var(--accent-color);
+            font-weight: bold;
+            height: 20px;
+        }
+
+        .beat-note .beat-number {
+            font-size: 0.8em;
+            color: var(--text-tertiary);
+            margin-top: 5px;
+        }
+
         .tempo-control {
             display: flex;
             align-items: center;
@@ -477,6 +515,9 @@
                 <span>/</span>
                 <input type="number" id="timeSigDenominator" min="1" max="16" value="4">
             </div>
+            <div class="beat-preview" id="beatPreview">
+                <!-- Dynamically generated beat notation -->
+            </div>
         </div>
 
         <div class="settings-group">
@@ -593,6 +634,7 @@
                 this.timeSigDenominatorInput = document.getElementById('timeSigDenominator');
                 this.soundTypeSelect = document.getElementById('soundType');
                 this.accentGrid = document.getElementById('accentGrid');
+                this.beatPreview = document.getElementById('beatPreview');
             }
 
             initAudio() {
@@ -699,9 +741,66 @@
                     beatBtn.addEventListener('click', () => {
                         this.accentPattern[i] = !this.accentPattern[i];
                         beatBtn.classList.toggle('active');
+                        this.updateBeatPreview();
                         this.saveSettings();
                     });
                     this.accentGrid.appendChild(beatBtn);
+                }
+
+                // Update the beat preview when accent grid changes
+                this.updateBeatPreview();
+            }
+
+            updateBeatPreview() {
+                this.beatPreview.innerHTML = '';
+
+                // Determine note symbol based on denominator
+                let noteSymbol;
+                switch (this.timeSigDenominator) {
+                    case 1:
+                        noteSymbol = '𝅝'; // Whole note
+                        break;
+                    case 2:
+                        noteSymbol = '𝅗𝅥'; // Half note
+                        break;
+                    case 4:
+                        noteSymbol = '♩'; // Quarter note
+                        break;
+                    case 8:
+                        noteSymbol = '♪'; // Eighth note
+                        break;
+                    case 16:
+                        noteSymbol = '♬'; // Sixteenth note (beamed eighth)
+                        break;
+                    default:
+                        noteSymbol = '♩'; // Default to quarter note
+                        break;
+                }
+
+                // Create beat notes with accent marks
+                for (let i = 0; i < this.timeSigNumerator; i++) {
+                    const beatNote = document.createElement('div');
+                    beatNote.className = 'beat-note';
+
+                    // Accent mark (shows above the note)
+                    const accentMark = document.createElement('div');
+                    accentMark.className = 'accent-mark';
+                    accentMark.textContent = this.accentPattern[i] ? '>' : '';
+
+                    // Note symbol
+                    const noteElem = document.createElement('div');
+                    noteElem.className = 'note-symbol';
+                    noteElem.textContent = noteSymbol;
+
+                    // Beat number (below the note)
+                    const beatNum = document.createElement('div');
+                    beatNum.className = 'beat-number';
+                    beatNum.textContent = i + 1;
+
+                    beatNote.appendChild(accentMark);
+                    beatNote.appendChild(noteElem);
+                    beatNote.appendChild(beatNum);
+                    this.beatPreview.appendChild(beatNote);
                 }
             }
 
@@ -784,6 +883,7 @@
                     const value = parseInt(e.target.value);
                     if (value >= 1 && value <= 16) {
                         this.timeSigDenominator = value;
+                        this.updateBeatPreview();
                         this.saveSettings();
                     } else {
                         e.target.value = this.timeSigDenominator;
