@@ -205,7 +205,7 @@
             top: 0;
             left: -100%;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             height: 100vh;
             background: var(--container-bg);
             box-shadow: 5px 0 20px var(--shadow-color);
@@ -242,7 +242,7 @@
             top: 0;
             left: -100%;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             height: 100vh;
             background: var(--container-bg);
             box-shadow: 5px 0 20px var(--shadow-color);
@@ -426,6 +426,77 @@
         .name-modal-confirm:hover {
             background: var(--accent-hover);
             border-color: var(--accent-hover);
+        }
+
+        /* Delete Confirmation Modal */
+        .delete-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .delete-modal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .delete-modal h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .delete-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .delete-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delete-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .delete-modal-cancel {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--input-border);
+        }
+
+        .delete-modal-cancel:hover {
+            border-color: var(--accent-color);
+        }
+
+        .delete-modal-confirm {
+            background: #ef4444;
+            color: white;
+            border: 2px solid #ef4444;
+        }
+
+        .delete-modal-confirm:hover {
+            background: #dc2626;
+            border-color: #dc2626;
         }
 
         .settings-modal h2 {
@@ -792,6 +863,16 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-modal" id="deleteModal">
+        <h3>Delete Preset</h3>
+        <p id="deleteModalMessage">Are you sure you want to delete this preset? This action cannot be undone.</p>
+        <div class="delete-modal-buttons">
+            <button class="delete-modal-cancel" id="deleteModalCancel">Cancel</button>
+            <button class="delete-modal-confirm" id="deleteModalConfirm">Delete</button>
+        </div>
+    </div>
+
     <div class="presets-modal" id="presetsModal">
         <button class="settings-close" id="presetsClose">×</button>
         <h2>Saved Presets</h2>
@@ -840,27 +921,27 @@
     </div>
 
     <div class="container">
-        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved presets">
+        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved presets" title="View saved presets">
             📋
         </button>
-        <button class="save-preset-btn" id="savePresetBtn" aria-label="Save current preset">
+        <button class="save-preset-btn" id="savePresetBtn" aria-label="Save current preset" title="Save current preset">
             💾
         </button>
-        <button class="settings-toggle" id="settingsToggle" aria-label="Advanced settings">
+        <button class="settings-toggle" id="settingsToggle" aria-label="Advanced settings" title="Advanced settings">
             ⚙️
         </button>
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
             🌙
         </button>
         <h1>🎵 Metronome</h1>
-        <div class="preset-name" id="presetName">Unsaved</div>
+        <div class="preset-name" id="presetName" title="Click to rename">Unsaved</div>
 
         <div class="control-group">
             <label>Tempo (BPM)</label>
             <div class="tempo-control">
-                <button class="tempo-btn" id="decreaseTempo">−</button>
-                <input type="number" class="tempo-display" id="tempoDisplay" value="120" min="30" max="300">
-                <button class="tempo-btn" id="increaseTempo">+</button>
+                <button class="tempo-btn" id="decreaseTempo" title="Decrease tempo">−</button>
+                <input type="number" class="tempo-display" id="tempoDisplay" value="120" min="30" max="300" title="Enter tempo manually">
+                <button class="tempo-btn" id="increaseTempo" title="Increase tempo">+</button>
             </div>
         </div>
 
@@ -876,8 +957,8 @@
         </div>
 
         <div class="control-buttons">
-            <button class="control-btn start-pause-btn" id="startPauseBtn">START</button>
-            <button class="control-btn stop-btn" id="stopBtn" disabled>STOP</button>
+            <button class="control-btn start-pause-btn" id="startPauseBtn" title="Start/Pause metronome">START</button>
+            <button class="control-btn stop-btn" id="stopBtn" disabled title="Stop and reset metronome">STOP</button>
         </div>
 
         <div class="beat-indicator" id="beatIndicator">
@@ -963,6 +1044,13 @@
                 this.nameModalInput = document.getElementById('nameModalInput');
                 this.nameModalCancel = document.getElementById('nameModalCancel');
                 this.nameModalConfirm = document.getElementById('nameModalConfirm');
+
+                // Delete modal elements
+                this.deleteModal = document.getElementById('deleteModal');
+                this.deleteModalMessage = document.getElementById('deleteModalMessage');
+                this.deleteModalCancel = document.getElementById('deleteModalCancel');
+                this.deleteModalConfirm = document.getElementById('deleteModalConfirm');
+                this.deleteModalCallback = null;
             }
 
             async initAudio() {
@@ -1254,22 +1342,25 @@
             }
 
             deletePreset(presetId) {
-                if (!confirm('Are you sure you want to delete this preset?')) {
-                    return;
-                }
+                const preset = this.presets.find(p => p.id === presetId);
+                if (!preset) return;
 
-                this.presets = this.presets.filter(p => p.id !== presetId);
+                const message = `Are you sure you want to delete "${preset.name}"? This action cannot be undone.`;
 
-                // If deleting current preset, reset
-                if (this.currentPresetId === presetId) {
-                    this.currentPresetId = null;
-                    this.currentPresetName = null;
-                    this.isModified = false;
-                    this.updatePresetNameDisplay();
-                }
+                this.showDeleteModal(message, () => {
+                    this.presets = this.presets.filter(p => p.id !== presetId);
 
-                this.savePresetsToStorage();
-                this.updatePresetsList();
+                    // If deleting current preset, reset
+                    if (this.currentPresetId === presetId) {
+                        this.currentPresetId = null;
+                        this.currentPresetName = null;
+                        this.isModified = false;
+                        this.updatePresetNameDisplay();
+                    }
+
+                    this.savePresetsToStorage();
+                    this.updatePresetsList();
+                });
             }
 
             updatePresetsList() {
@@ -1314,7 +1405,7 @@
                     // Duplicate button
                     const duplicateBtn = document.createElement('button');
                     duplicateBtn.className = 'duplicate-btn';
-                    duplicateBtn.textContent = '📄';
+                    duplicateBtn.textContent = '⎘';
                     duplicateBtn.title = 'Duplicate preset';
                     duplicateBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1405,6 +1496,31 @@
                     this.nameModalCallback(name);
                 }
                 this.hideNameModal();
+            }
+
+            showDeleteModal(message, callback) {
+                this.deleteModalMessage.textContent = message;
+                this.deleteModalCallback = callback;
+                this.deleteModal.classList.add('open');
+                this.settingsOverlay.classList.add('open');
+            }
+
+            hideDeleteModal() {
+                this.deleteModal.classList.remove('open');
+                // Only close overlay if modals are closed
+                if (!this.settingsModal.classList.contains('open') &&
+                    !this.presetsModal.classList.contains('open') &&
+                    !this.nameModal.classList.contains('open')) {
+                    this.settingsOverlay.classList.remove('open');
+                }
+                this.deleteModalCallback = null;
+            }
+
+            confirmDeleteModal() {
+                if (this.deleteModalCallback) {
+                    this.deleteModalCallback();
+                }
+                this.hideDeleteModal();
             }
 
             attachDragListeners() {
@@ -1641,6 +1757,10 @@
                         this.hideNameModal();
                     }
                 });
+
+                // Delete modal
+                this.deleteModalCancel.addEventListener('click', () => this.hideDeleteModal());
+                this.deleteModalConfirm.addEventListener('click', () => this.confirmDeleteModal());
 
                 // Advanced settings - time signature
                 this.timeSigNumeratorInput.addEventListener('change', (e) => {
