@@ -975,11 +975,14 @@
                 this.startPauseBtn.classList.add('paused');
 
                 // Show beat position when paused
+                // currentBeat represents the NEXT beat to be scheduled, so subtract 1 for the last played beat
+                const lastPlayedBeat = this.currentBeat > 0 ? this.currentBeat - 1 : 0;
+
                 const beatText = this.isCountIn
-                    ? `Paused at count-in: ${this.currentBeat}/${this.startingBeats}`
+                    ? `Paused at count-in: ${lastPlayedBeat + 1}/${this.startingBeats}`
                     : this.totalBeats > 0
-                        ? `Paused at beat: ${this.currentBeat}/${this.totalBeats}`
-                        : `Paused at beat: ${this.currentBeat}`;
+                        ? `Paused at beat: ${lastPlayedBeat + 1}/${this.totalBeats}`
+                        : `Paused at beat: ${lastPlayedBeat + 1}`;
 
                 this.beatIndicator.textContent = beatText;
             }
