@@ -937,6 +937,13 @@
                 <option value="woodblock">Woodblock</option>
             </select>
         </div>
+
+        <div class="settings-group">
+            <h3>Export Audio</h3>
+            <button id="exportBtn" style="width: 100%; padding: 12px; font-size: 1em; border-radius: 8px; background: var(--accent-color); color: white; border: 2px solid var(--accent-color); cursor: pointer; transition: all 0.2s ease;">
+                Export as WAV
+            </button>
+        </div>
     </div>
 
     <div class="container">
@@ -1048,6 +1055,7 @@
                 this.soundTypeSelect = document.getElementById('soundType');
                 this.accentGrid = document.getElementById('accentGrid');
                 this.beatPreview = document.getElementById('beatPreview');
+                this.exportBtn = document.getElementById('exportBtn');
 
                 // Preset elements
                 this.presetNameDisplay = document.getElementById('presetName');
@@ -1542,6 +1550,177 @@
                 this.hideDeleteModal();
             }
 
+            async exportToWAV() {
+                const totalBeatsToExport = this.totalBeats === 0 ? 400 : this.totalBeats;
+                const countInBeats = this.startingBeats;
+                const totalBeats = countInBeats + totalBeatsToExport;
+                const secondsPerBeat = 60.0 / this.tempo;
+                const totalDuration = totalBeats * secondsPerBeat + 1; // Add 1 second buffer
+
+                // Disable export button during export
+                this.exportBtn.disabled = true;
+                this.exportBtn.textContent = 'Exporting...';
+
+                try {
+                    // Create offline audio context
+                    const sampleRate = 44100;
+                    const offlineContext = new OfflineAudioContext(1, totalDuration * sampleRate, sampleRate);
+
+                    // Generate audio buffers for offline context
+                    const offlineBuffers = await this.generateSoundBuffersForContext(offlineContext);
+
+                    // Schedule all beats
+                    let currentTime = 0;
+                    for (let i = 0; i < totalBeats; i++) {
+                        const isCountIn = i < countInBeats;
+                        const beatNumber = isCountIn ? i : i - countInBeats;
+
+                        this.scheduleOfflineBeat(offlineContext, offlineBuffers, currentTime, isCountIn, beatNumber);
+                        currentTime += secondsPerBeat;
+                    }
+
+                    // Render the audio
+                    const renderedBuffer = await offlineContext.startRendering();
+
+                    // Convert to WAV and download
+                    const wavBlob = this.audioBufferToWav(renderedBuffer);
+                    const url = URL.createObjectURL(wavBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const presetName = this.currentPresetName || 'metronome';
+                    a.download = `${presetName}_${this.tempo}bpm.wav`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    // Re-enable export button
+                    this.exportBtn.disabled = false;
+                    this.exportBtn.textContent = 'Export as WAV';
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
+                    this.exportBtn.disabled = false;
+                    this.exportBtn.textContent = 'Export as WAV';
+                }
+            }
+
+            async generateSoundBuffersForContext(context) {
+                const sampleRate = context.sampleRate;
+                const buffers = {};
+
+                // Create beep sound
+                const beepLength = Math.floor(sampleRate * 0.05);
+                const beepBuffer = context.createBuffer(1, beepLength, sampleRate);
+                const beepData = beepBuffer.getChannelData(0);
+                for (let i = 0; i < beepLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 15);
+                    beepData[i] = Math.sin(2 * Math.PI * 1000 * t) * envelope * 0.3;
+                }
+                buffers.beep = beepBuffer;
+
+                // Create click sound
+                const clickLength = Math.floor(sampleRate * 0.03);
+                const clickBuffer = context.createBuffer(1, clickLength, sampleRate);
+                const clickData = clickBuffer.getChannelData(0);
+                for (let i = 0; i < clickLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 40);
+                    clickData[i] = Math.sin(2 * Math.PI * 1200 * t) * envelope * 0.4;
+                }
+                buffers.click = clickBuffer;
+
+                // Create woodblock sound
+                const woodLength = Math.floor(sampleRate * 0.04);
+                const woodBuffer = context.createBuffer(1, woodLength, sampleRate);
+                const woodData = woodBuffer.getChannelData(0);
+                for (let i = 0; i < woodLength; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 25);
+                    const fundamental = Math.sin(2 * Math.PI * 700 * t);
+                    const harmonic = Math.sin(2 * Math.PI * 1400 * t) * 0.3;
+                    woodData[i] = (fundamental + harmonic) * envelope * 0.35;
+                }
+                buffers.woodblock = woodBuffer;
+
+                return buffers;
+            }
+
+            scheduleOfflineBeat(context, buffers, time, isCountIn, beatNumber) {
+                const source = context.createBufferSource();
+                const gainNode = context.createGain();
+
+                const beatsPerMeasure = this.getBeatsPerMeasure();
+                const beatInMeasure = beatNumber % beatsPerMeasure;
+                const isAccented = !isCountIn && this.accentPattern[beatInMeasure];
+
+                source.buffer = buffers[this.soundType] || buffers.beep;
+
+                if (isCountIn) {
+                    source.playbackRate.value = 0.9;
+                } else if (isAccented) {
+                    source.playbackRate.value = 1.2;
+                } else {
+                    source.playbackRate.value = 1.0;
+                }
+
+                source.connect(gainNode);
+                gainNode.connect(context.destination);
+
+                const volumeMultiplier = isAccented ? 1.4 : 1.0;
+                gainNode.gain.value = this.volume * volumeMultiplier;
+
+                source.start(time);
+            }
+
+            audioBufferToWav(buffer) {
+                const numberOfChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const format = 1; // PCM
+                const bitDepth = 16;
+
+                const bytesPerSample = bitDepth / 8;
+                const blockAlign = numberOfChannels * bytesPerSample;
+
+                const data = buffer.getChannelData(0);
+                const dataLength = data.length * bytesPerSample;
+                const bufferLength = 44 + dataLength;
+
+                const arrayBuffer = new ArrayBuffer(bufferLength);
+                const view = new DataView(arrayBuffer);
+
+                // Write WAV header
+                const writeString = (offset, string) => {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                };
+
+                writeString(0, 'RIFF');
+                view.setUint32(4, bufferLength - 8, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true); // fmt chunk size
+                view.setUint16(20, format, true);
+                view.setUint16(22, numberOfChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * blockAlign, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitDepth, true);
+                writeString(36, 'data');
+                view.setUint32(40, dataLength, true);
+
+                // Write audio data
+                let offset = 44;
+                for (let i = 0; i < data.length; i++) {
+                    const sample = Math.max(-1, Math.min(1, data[i]));
+                    const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(offset, intSample, true);
+                    offset += 2;
+                }
+
+                return new Blob([arrayBuffer], { type: 'audio/wav' });
+            }
+
             attachDragListeners() {
                 const items = this.presetsList.querySelectorAll('.preset-item');
                 let draggedElement = null;
@@ -1811,6 +1990,9 @@
                     this.saveSettings();
                     this.markAsModified();
                 });
+
+                // Export button
+                this.exportBtn.addEventListener('click', () => this.exportToWAV());
             }
 
             setupLongPress(button, callback) {
