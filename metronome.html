@@ -359,6 +359,7 @@
 
         .preset-item .duplicate-btn:nth-of-type(2) {
             color: #10b981;
+            font-size: 1.4em;
         }
 
         .preset-item .duplicate-btn:nth-of-type(2):hover {
@@ -844,6 +845,10 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
             .container {
                 padding: 25px;
             }
@@ -874,7 +879,7 @@
 
     <!-- Name Input Modal -->
     <div class="name-modal" id="nameModal">
-        <h3 id="nameModalTitle">Enter preset name</h3>
+        <h3 id="nameModalTitle">Enter metronome name</h3>
         <input type="text" id="nameModalInput" placeholder="e.g., Song Practice, Waltz, etc." />
         <div class="name-modal-buttons">
             <button class="name-modal-cancel" id="nameModalCancel">Cancel</button>
@@ -884,8 +889,8 @@
 
     <!-- Delete Confirmation Modal -->
     <div class="delete-modal" id="deleteModal">
-        <h3>Delete Preset</h3>
-        <p id="deleteModalMessage">Are you sure you want to delete this preset? This action cannot be undone.</p>
+        <h3>Delete Metronome</h3>
+        <p id="deleteModalMessage">Are you sure you want to delete this metronome? This action cannot be undone.</p>
         <div class="delete-modal-buttons">
             <button class="delete-modal-cancel" id="deleteModalCancel">Cancel</button>
             <button class="delete-modal-confirm" id="deleteModalConfirm">Delete</button>
@@ -894,9 +899,9 @@
 
     <div class="presets-modal" id="presetsModal">
         <button class="settings-close" id="presetsClose">×</button>
-        <h2>Saved Presets</h2>
+        <h2>Saved Metronomes</h2>
         <div id="presetsList">
-            <div class="presets-empty">No presets saved yet</div>
+            <div class="presets-empty">No metronomes saved yet</div>
         </div>
     </div>
 
@@ -947,10 +952,10 @@
     </div>
 
     <div class="container">
-        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved presets" title="View saved presets">
+        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved metronomes" title="View saved metronomes">
             📋
         </button>
-        <button class="save-preset-btn" id="savePresetBtn" aria-label="Save current preset" title="Save current preset">
+        <button class="save-preset-btn" id="savePresetBtn" aria-label="Save current metronome" title="Save current metronome">
             💾
         </button>
         <button class="settings-toggle" id="settingsToggle" aria-label="Advanced settings" title="Advanced settings">
