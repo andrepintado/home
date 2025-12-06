@@ -4,6 +4,13 @@ const urlsToCache = [
   '/manifest.json'
 ];
 
+// Message handler for skipWaiting
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
+
 // Install event - cache files
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -13,8 +20,6 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
 });
 
 // Fetch event - serve from cache, fallback to network

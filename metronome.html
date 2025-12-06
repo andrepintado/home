@@ -879,9 +879,73 @@
                 font-size: 1.2em;
             }
         }
+
+        /* Update notification banner */
+        .update-banner {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10000;
+            transition: top 0.3s ease;
+            max-width: 90%;
+        }
+
+        .update-banner.show {
+            top: 0;
+        }
+
+        .update-banner-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .update-banner-btn {
+            background: white;
+            color: #10b981;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .update-banner-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 480px) {
+            .update-banner {
+                padding: 12px 20px;
+                font-size: 0.9em;
+            }
+
+            .update-banner-btn {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Update notification banner -->
+    <div class="update-banner" id="updateBanner">
+        <div class="update-banner-text">New version available!</div>
+        <button class="update-banner-btn" id="updateBtn">Refresh</button>
+    </div>
+
     <div class="settings-overlay" id="settingsOverlay"></div>
 
     <!-- Name Input Modal -->
@@ -2229,16 +2293,52 @@
         // Initialize the metronome when the page loads
         const metronome = new Metronome();
 
+        // PWA Update Management
+        let newWorker;
+
+        function showUpdateBanner() {
+            const banner = document.getElementById('updateBanner');
+            const updateBtn = document.getElementById('updateBtn');
+
+            banner.classList.add('show');
+
+            updateBtn.addEventListener('click', () => {
+                if (newWorker) {
+                    newWorker.postMessage({ action: 'skipWaiting' });
+                }
+            });
+        }
+
         // Register service worker for PWA functionality
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then((registration) => {
                         console.log('Service Worker registered successfully:', registration.scope);
+
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            newWorker = registration.installing;
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New service worker available
+                                    showUpdateBanner();
+                                }
+                            });
+                        });
                     })
                     .catch((error) => {
                         console.log('Service Worker registration failed:', error);
                     });
+
+                // Handle service worker updates
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
             });
         }
     </script>
