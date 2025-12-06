@@ -110,7 +110,7 @@
         .theme-toggle {
             position: absolute;
             top: 15px;
-            right: 15px;
+            right: 65px;
             background: var(--input-bg);
             border: 2px solid var(--input-border);
             border-radius: 50%;
@@ -132,10 +132,60 @@
             border-color: var(--accent-color);
         }
 
+        .info-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .info-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+        }
+
+        .new-metronome-btn {
+            position: absolute;
+            top: 15px;
+            right: 265px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .new-metronome-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+        }
+
         .settings-toggle {
             position: absolute;
             top: 15px;
-            right: 65px;
+            right: 115px;
             background: var(--input-bg);
             border: 2px solid var(--input-border);
             border-radius: 50%;
@@ -160,7 +210,7 @@
         .save-preset-btn {
             position: absolute;
             top: 15px;
-            right: 115px;
+            right: 215px;
             background: var(--input-bg);
             border: 2px solid var(--input-border);
             border-radius: 50%;
@@ -524,6 +574,131 @@
         .delete-modal-confirm:hover {
             background: #dc2626;
             border-color: #dc2626;
+        }
+
+        /* Save Confirmation Modal */
+        .save-confirm-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .save-confirm-modal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .save-confirm-modal h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .save-confirm-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .save-confirm-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .save-confirm-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .save-confirm-cancel {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--input-border);
+        }
+
+        .save-confirm-cancel:hover {
+            border-color: var(--accent-color);
+        }
+
+        .save-confirm-yes {
+            background: var(--accent-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+        }
+
+        .save-confirm-yes:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        /* Info Modal */
+        .info-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .info-modal.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .info-modal h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .info-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .info-modal-close {
+            background: var(--accent-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .info-modal-close:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
         }
 
         .settings-modal h2 {
@@ -948,6 +1123,24 @@
 
     <div class="settings-overlay" id="settingsOverlay"></div>
 
+    <!-- Save Confirmation Modal -->
+    <div class="save-confirm-modal" id="saveConfirmModal">
+        <h3>Save current metronome?</h3>
+        <p>You have unsaved changes. Would you like to save them before creating a new metronome?</p>
+        <div class="save-confirm-modal-buttons">
+            <button class="save-confirm-cancel" id="saveConfirmNo">No</button>
+            <button class="save-confirm-yes" id="saveConfirmYes">Yes</button>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="info-modal" id="infoModal">
+        <h3>🎵 Metronome</h3>
+        <p>Created by <strong>André Pintado</strong></p>
+        <p>This is a non-profit project, made with ❤️ for musicians.</p>
+        <button class="info-modal-close" id="infoModalClose">Close</button>
+    </div>
+
     <!-- Name Input Modal -->
     <div class="name-modal" id="nameModal">
         <h3 id="nameModalTitle">Enter metronome name</h3>
@@ -1023,17 +1216,23 @@
     </div>
 
     <div class="container">
-        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved metronomes" title="View saved metronomes">
-            📋
+        <button class="new-metronome-btn" id="newMetronomeBtn" aria-label="New metronome" title="New metronome">
+            ➕
         </button>
         <button class="save-preset-btn" id="savePresetBtn" aria-label="Save current metronome" title="Save current metronome">
             💾
+        </button>
+        <button class="presets-list-btn" id="presetsListBtn" aria-label="View saved metronomes" title="View saved metronomes">
+            📋
         </button>
         <button class="settings-toggle" id="settingsToggle" aria-label="Advanced settings" title="Advanced settings">
             ⚙️
         </button>
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
             🌙
+        </button>
+        <button class="info-btn" id="infoBtn" aria-label="About this app" title="About this app">
+            ℹ️
         </button>
         <h1>🎵 Metronome</h1>
         <div class="preset-name" id="presetName" title="Click to rename">Unsaved</div>
@@ -1154,6 +1353,16 @@
                 this.deleteModalCancel = document.getElementById('deleteModalCancel');
                 this.deleteModalConfirm = document.getElementById('deleteModalConfirm');
                 this.deleteModalCallback = null;
+
+                // New metronome and info elements
+                this.newMetronomeBtn = document.getElementById('newMetronomeBtn');
+                this.infoBtn = document.getElementById('infoBtn');
+                this.saveConfirmModal = document.getElementById('saveConfirmModal');
+                this.saveConfirmYes = document.getElementById('saveConfirmYes');
+                this.saveConfirmNo = document.getElementById('saveConfirmNo');
+                this.infoModal = document.getElementById('infoModal');
+                this.infoModalClose = document.getElementById('infoModalClose');
+                this.saveConfirmCallback = null;
             }
 
             async initAudio() {
@@ -1626,6 +1835,118 @@
                 this.hideDeleteModal();
             }
 
+            // New Metronome functionality
+            newMetronome() {
+                // Check if there are unsaved changes
+                if (this.isModified || (!this.currentPresetName && this.hasNonDefaultSettings())) {
+                    this.showSaveConfirmModal(() => {
+                        // Yes - save first, then reset
+                        this.savePreset();
+                        setTimeout(() => this.resetToDefaults(), 300);
+                    }, () => {
+                        // No - just reset
+                        this.resetToDefaults();
+                    });
+                } else {
+                    // No changes, just reset
+                    this.resetToDefaults();
+                }
+            }
+
+            hasNonDefaultSettings() {
+                // Check if current settings differ from defaults
+                return this.tempo !== 120 ||
+                       this.volume !== 0.7 ||
+                       this.startingBeats !== 4 ||
+                       this.totalBeats !== 0 ||
+                       this.timeSigNumerator !== 4 ||
+                       this.timeSigDenominator !== 4 ||
+                       this.soundType !== 'beep';
+            }
+
+            resetToDefaults() {
+                // Stop if playing
+                if (this.isPlaying) {
+                    this.stop();
+                }
+
+                // Reset to defaults
+                this.tempo = 120;
+                this.volume = 0.7;
+                this.startingBeats = 4;
+                this.totalBeats = 0;
+                this.timeSigNumerator = 4;
+                this.timeSigDenominator = 4;
+                this.accentPattern = [true, false, false, false];
+                this.soundType = 'beep';
+
+                // Reset preset state
+                this.currentPresetId = null;
+                this.currentPresetName = null;
+                this.isModified = false;
+
+                // Update UI
+                this.updateTempoDisplay();
+                this.volumeSlider.value = Math.round(this.volume * 100);
+                this.volumeDisplay.textContent = Math.round(this.volume * 100);
+                this.startingBeatsInput.value = this.startingBeats;
+                this.totalBeatsInput.value = this.totalBeats;
+                this.timeSigNumeratorInput.value = this.timeSigNumerator;
+                this.timeSigDenominatorInput.value = this.timeSigDenominator;
+                this.soundTypeSelect.value = this.soundType;
+                this.updateAccentGrid();
+                this.updatePresetNameDisplay();
+                this.saveSettings();
+            }
+
+            showSaveConfirmModal(onYes, onNo) {
+                this.saveConfirmCallback = { onYes, onNo };
+                this.saveConfirmModal.classList.add('open');
+                this.settingsOverlay.classList.add('open');
+            }
+
+            hideSaveConfirmModal() {
+                this.saveConfirmModal.classList.remove('open');
+                if (!this.settingsModal.classList.contains('open') &&
+                    !this.presetsModal.classList.contains('open') &&
+                    !this.nameModal.classList.contains('open') &&
+                    !this.deleteModal.classList.contains('open') &&
+                    !this.infoModal.classList.contains('open')) {
+                    this.settingsOverlay.classList.remove('open');
+                }
+                this.saveConfirmCallback = null;
+            }
+
+            confirmSaveConfirmYes() {
+                if (this.saveConfirmCallback && this.saveConfirmCallback.onYes) {
+                    this.saveConfirmCallback.onYes();
+                }
+                this.hideSaveConfirmModal();
+            }
+
+            confirmSaveConfirmNo() {
+                if (this.saveConfirmCallback && this.saveConfirmCallback.onNo) {
+                    this.saveConfirmCallback.onNo();
+                }
+                this.hideSaveConfirmModal();
+            }
+
+            showInfoModal() {
+                this.infoModal.classList.add('open');
+                this.settingsOverlay.classList.add('open');
+            }
+
+            hideInfoModal() {
+                this.infoModal.classList.remove('open');
+                if (!this.settingsModal.classList.contains('open') &&
+                    !this.presetsModal.classList.contains('open') &&
+                    !this.nameModal.classList.contains('open') &&
+                    !this.deleteModal.classList.contains('open') &&
+                    !this.saveConfirmModal.classList.contains('open')) {
+                    this.settingsOverlay.classList.remove('open');
+                }
+            }
+
             async exportToWAV() {
                 const totalBeatsToExport = this.totalBeats === 0 ? 400 : this.totalBeats;
                 const countInBeats = this.startingBeats;
@@ -2035,6 +2356,17 @@
                 // Delete modal
                 this.deleteModalCancel.addEventListener('click', () => this.hideDeleteModal());
                 this.deleteModalConfirm.addEventListener('click', () => this.confirmDeleteModal());
+
+                // New metronome button
+                this.newMetronomeBtn.addEventListener('click', () => this.newMetronome());
+
+                // Save confirmation modal
+                this.saveConfirmYes.addEventListener('click', () => this.confirmSaveConfirmYes());
+                this.saveConfirmNo.addEventListener('click', () => this.confirmSaveConfirmNo());
+
+                // Info button and modal
+                this.infoBtn.addEventListener('click', () => this.showInfoModal());
+                this.infoModalClose.addEventListener('click', () => this.hideInfoModal());
 
                 // Advanced settings - time signature
                 this.timeSigNumeratorInput.addEventListener('change', (e) => {
