@@ -98,19 +98,25 @@
             const ctx = canvas.getContext('2d');
             const size = canvas.width;
 
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, size, size);
-            gradient.addColorStop(0, '#667eea');
-            gradient.addColorStop(1, '#764ba2');
-            ctx.fillStyle = gradient;
+            // White background with rounded corners
+            ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, size, size);
 
-            // Draw musical note (emoji-style)
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${size * 0.6}px Arial`;
+            // Optional: Add subtle border for better visibility on white backgrounds
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = size * 0.01;
+            ctx.strokeRect(0, 0, size, size);
+
+            // Draw musical note (emoji-style) in app purple color
+            ctx.fillStyle = '#667eea';
+            ctx.font = `bold ${size * 0.65}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('🎵', size / 2, size / 2);
+
+            // Center the emoji more precisely (emojis often have extra space at bottom)
+            // Adjust Y position slightly up for better visual centering
+            const yOffset = size * 0.52; // Move up slightly from perfect center (0.5)
+            ctx.fillText('🎵', size / 2, yOffset);
         }
 
         function downloadIcon(canvasId, filename) {
