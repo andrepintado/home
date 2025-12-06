@@ -2316,6 +2316,14 @@
                     .then((registration) => {
                         console.log('Service Worker registered successfully:', registration.scope);
 
+                        // Check for updates immediately on load
+                        registration.update();
+
+                        // Check for updates every time the app is focused (opened)
+                        window.addEventListener('focus', () => {
+                            registration.update();
+                        });
+
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             newWorker = registration.installing;
