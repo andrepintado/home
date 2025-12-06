@@ -1,6 +1,6 @@
 {
-  "name": "Metronome",
-  "short_name": "Metronome",
+  "name": "Pocket Metronome",
+  "short_name": "Pocket Metronome",
   "description": "A simple, beautiful metronome app with custom time signatures and accent patterns",
   "start_url": "/metronome.html",
   "display": "standalone",
